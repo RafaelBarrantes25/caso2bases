@@ -8,4 +8,18 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 
 # Tables:
 
-##
+## Productos:
+- productoId PK
+- nombre varchar(40)
+- descripcion varchar(200)
+
+## Precio:
+- precioId PK
+- paisId FK
+- moneda varchar(20)
+- tasaCambio decimal(10,5)
+
+## Pais:
+- paisId PK
+- paisOrigen varchar(20)
+- paisDestino varchar(20)
