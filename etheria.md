@@ -46,6 +46,15 @@ Todo llega a un centro logístico en la costa Caribe de Nicaragua.
 ## Importaciones:
 - importacionID PK
 - productoID FK
+- cantidad integer
+- fecha TIMESTAMP
+- precioID FK
+- proveedorID FK
+
+## Exportaciones:
+- exportacionID PK
+- productoID FK
+- cantidad integer
 - fecha TIMESTAMP
 - precioID FK
 - proveedorID FK
