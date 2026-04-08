@@ -13,6 +13,8 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - nombre varchar(40)
 - descripcion varchar(200)
 - precioID FK
+- sitioWebID FK
+- enExistencia boolean
 
 ## Precio:
 - precioId PK
@@ -29,9 +31,10 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - sitioWebID PK
 - nombre varchar (32)
 - URL varchar (100)
+- logo_url text
+- enfoque varchar(256)
 - paísID FK
-- logo varchar(32)                    - Creo que es varchar, no estoy seguro (Ian)
-- abierto boolean                     - No le veo utilidad de momento pero tal vez sirva luego (Ian)
+- abierto boolean
 
 ## Marcas:
 - marcaID PK
@@ -40,11 +43,13 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 ## Clientes:
 - clienteID PK
 - nombre varchar(32)
+- paisID FK
 
 ## Ordenes:
 - ordenID PK
 - descripcion varchar(256)
 - productoID FK
+- cantidad integer
 - marcaID FK
-- paisID FK                          - Es para el destino (Ian)
 - clienteID FK
+- realizada timestamp
