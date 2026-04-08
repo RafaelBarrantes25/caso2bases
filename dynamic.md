@@ -45,6 +45,11 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - nombre varchar(32)
 - paisID FK
 
+## CourierServices:
+- courierServiceID PK
+- nombre varchar(32)
+- paisID FK
+
 ## Ordenes:
 - ordenID PK
 - descripcion varchar(256)
@@ -53,3 +58,13 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - marcaID FK
 - clienteID FK
 - realizada timestamp
+
+## Paquetes:
+- paqueteID PK
+- marcaID FK
+- productoID FK
+- paisID FK
+- requisitosLegales varchar(256)
+- permisosDeSalud varchar(256)
+- courierServiceID FK
+- clienteID FK
