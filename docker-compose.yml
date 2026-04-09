@@ -1,0 +1,29 @@
+services:
+  db_postgres:
+    image: postgres:latest
+    container_name: postgrescaso2
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: basepostgre
+    ports:
+      - "5432:5432"
+    networks:
+      - data_network
+
+  db_mysql:
+    image: mysql:latest
+    container_name: mysqlcaso2
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: basemysql
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+    ports:
+      - "3306:3306"
+    networks:
+      - data_network
+
+networks:
+  data_network:
+    driver: bridge
