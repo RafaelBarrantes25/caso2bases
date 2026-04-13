@@ -1,71 +1,78 @@
--- Creación de la base de datos
+-- ==========================================
+-- 1. Configuración de la Base de Datos
+-- ==========================================
+-- DROP DATABASE IF EXISTS Etheria;
 -- CREATE DATABASE Etheria;
 -- \c etheria;
 
--- 1. Tabla TiposDeProducto (Requerida por Productos)
+-- ==========================================
+-- 2. Tablas Maestras (Catálogos)
+-- ==========================================
+
+-- Catálogo de ubicaciones geográficas para proveedores y logística
+CREATE TABLE Ubicaciones (
+    ubicacionId SERIAL PRIMARY KEY,
+    pais VARCHAR(20) NOT NULL,
+    provincia VARCHAR(20),
+    ciudad VARCHAR(20),
+    direccion VARCHAR(128)
+);
+
+-- Categorías: Bebidas, Cosmética, Aromaterapia, etc.
 CREATE TABLE TiposDeProducto (
     tipoProductoId SERIAL PRIMARY KEY,
-    nombreTipo VARCHAR(20) NOT NULL
+    nombreTipo VARCHAR(20) NOT NULL UNIQUE
 );
 
--- 2. Tabla Medidas (Requerida por Productos)
+-- Unidades de medida para el "bulk" (Cajas, Litros, Kg)
 CREATE TABLE Medidas (
     medidaId SERIAL PRIMARY KEY,
-    unidad VARCHAR(20) NOT NULL,
-    cantidad FLOAT(5)
+    unidad VARCHAR(20) NOT NULL, -- Ejemplo: 'Caja', 'Litro'
+    cantidad_unidades FLOAT -- Cantidad de unidades que contiene la medida
 );
 
--- 3. Tabla Paises (Requerida por Proveedores e Import/Export)
-CREATE TABLE Paises (
-    paisId SERIAL PRIMARY KEY,
-    paisOrigen VARCHAR(20),
-    paisDestino VARCHAR(20)
-);
-
--- 4. Tabla Precios (Requerida por Productos e Import/Export)
--- Nota: En tu md pusiste precioId FK en Precios, lo definí como PK para que funcione.
-CREATE TABLE Precios (
-    precioId SERIAL PRIMARY KEY,
-    moneda VARCHAR(20) DEFAULT 'USD',
-    valor FLOAT(10)
-);
-
--- 5. Tabla Proveedores (Requerida por Productos e Import/Export)
+-- Registro de proveedores internacionales
 CREATE TABLE Proveedores (
     proveedorID SERIAL PRIMARY KEY,
     nombre VARCHAR(32) NOT NULL,
-    paisID INTEGER REFERENCES Paises(paisId)
+    ubicacionID INTEGER REFERENCES Ubicaciones(ubicacionId) ON DELETE SET NULL
 );
 
--- 6. Tabla Productos
+-- ==========================================
+-- 3. Tabla de Productos (Maestro)
+-- ==========================================
+
 CREATE TABLE Productos (
     productoId SERIAL PRIMARY KEY,
-    medidaId INTEGER REFERENCES Medidas(medidaId),
-    precioId INTEGER REFERENCES Precios(precioId),
-    -- El paisId se omite según la nota de Ian
-    proveedorID INTEGER REFERENCES Proveedores(proveedorID),
-    tipoProductoId INTEGER REFERENCES TiposDeProducto(tipoProductoId),
     nombre VARCHAR(40) NOT NULL,
+    tipoProductoId INTEGER REFERENCES TiposDeProducto(tipoProductoId),
     descripcion VARCHAR(200),
-    activo BOOLEAN DEFAULT TRUE
+    medidaId INTEGER REFERENCES Medidas(medidaId),
+    precioUSD DECIMAL(19, 4) NOT NULL, -- Mayor precisión para productos de alta gama
+    stock_actual INTEGER DEFAULT 0,    -- Representa la cantidad en bodega
+    descontinuado BOOLEAN DEFAULT FALSE,
+    CONSTRAINT stock_minimo CHECK (stock_actual >= 0)
 );
 
--- 7. Tabla Importaciones
+-- ==========================================
+-- 4. Flujo de Operación (Importaciones)
+-- ==========================================
+
+-- Cabecera de la Importación
 CREATE TABLE Importaciones (
     importacionID SERIAL PRIMARY KEY,
-    productoID INTEGER REFERENCES Productos(productoId),
-    cantidad INTEGER,
-    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    precioID INTEGER REFERENCES Precios(precioId),
-    proveedorID INTEGER REFERENCES Proveedores(proveedorID)
+    proveedorID INTEGER REFERENCES Proveedores(proveedorID) NOT NULL,
+    descripcion VARCHAR(256),
+    fechaCreacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    totalPrecioUSD DECIMAL(19, 4),
+    estado VARCHAR(9) CHECK (estado IN ('Entregada', 'activa', 'cancelada')) DEFAULT 'activa'
 );
 
--- 8. Tabla Exportaciones
-CREATE TABLE Exportaciones (
-    exportacionID SERIAL PRIMARY KEY,
+-- Detalle de productos por importación (Relación Muchos a Muchos)
+CREATE TABLE ProductosXImportacion (
+    productosXImportacionID SERIAL PRIMARY KEY,
+    importacionID INTEGER REFERENCES Importaciones(importacionID) ON DELETE CASCADE,
     productoID INTEGER REFERENCES Productos(productoId),
-    cantidad INTEGER,
-    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    precioID INTEGER REFERENCES Precios(precioId),
-    proveedorID INTEGER REFERENCES Proveedores(proveedorID)
+    cantidad INTEGER NOT NULL CHECK (cantidad > 0)
 );
+
