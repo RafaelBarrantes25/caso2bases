@@ -1,96 +1,115 @@
--- Creación de la base de datos
+-- Crear base de datos
 CREATE DATABASE IF NOT EXISTS Dynamic;
 USE Dynamic;
 
--- 1. Tabla Pais (Requerida por Precio, SitiosWeb, Clientes, CourierServices y Paquetes)
-CREATE TABLE Pais (
-    paisId INT AUTO_INCREMENT PRIMARY KEY,
-    paisOrigen VARCHAR(20),
-    paisDestino VARCHAR(20)
-);
+-- 1. Tablas de Configuración Regional
+CREATE TABLE Ubicaciones (
+    ubicacionId INT AUTO_INCREMENT PRIMARY KEY,
+    pais VARCHAR(20) NOT NULL,
+    provincia VARCHAR(20),
+    ciudad VARCHAR(20),
+    direccion VARCHAR(128)
+) ENGINE=InnoDB;
 
--- 2. Tabla Precio (Requerida por Productos)
-CREATE TABLE Precio (
-    precioId INT AUTO_INCREMENT PRIMARY KEY,
-    paisId INT,
+CREATE TABLE PreciosLocales (
+    precioLocalId INT AUTO_INCREMENT PRIMARY KEY,
     moneda VARCHAR(20),
+    simbolo CHAR(1),
     tasaCambio DECIMAL(10,5),
-    CONSTRAINT fk_precio_pais FOREIGN KEY (paisId) REFERENCES Pais(paisId)
-);
+    activo BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB;
 
--- 3. Tabla SitiosWeb (Requerida por Productos)
+-- 2. Integración con Etheria (Capa de abstracción)
+CREATE TABLE ProductosRemotos (
+    productoRemotoId INT AUTO_INCREMENT PRIMARY KEY,
+    productoID INT NOT NULL, -- FK Virtual a PostgreSQL
+    nombre VARCHAR(40),
+    precioLocalID INT,
+    enExistencia BOOLEAN,
+    FOREIGN KEY (precioLocalID) REFERENCES PreciosLocales(precioLocalId)
+) ENGINE=InnoDB; 
+-- Nota: Si fuera FEDERATED real, se agregaría ENGINE=FEDERATED CONNECTION='...'
+
+-- 3. Gestión de Sitios Dinámicos (IA)
 CREATE TABLE SitiosWeb (
     sitioWebID INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32),
+    nombre VARCHAR(32) NOT NULL,
     URL VARCHAR(100),
     logo_url TEXT,
     enfoque VARCHAR(256),
-    paisID INT,
-    abierto BOOLEAN,
-    CONSTRAINT fk_sitios_pais FOREIGN KEY (paisID) REFERENCES Pais(paisId)
-);
+    ubicacionID INT,
+    abierto BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (ubicacionID) REFERENCES Ubicaciones(ubicacionId)
+) ENGINE=InnoDB;
 
--- 4. Tabla Productos (Requerida por Ordenes y Paquetes)
-CREATE TABLE Productos (
-    productoId INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(40),
-    descripcion VARCHAR(200),
-    precioID INT,
-    sitioWebID INT,
-    enExistencia BOOLEAN,
-    CONSTRAINT fk_prod_precio FOREIGN KEY (precioID) REFERENCES Precio(precioId),
-    CONSTRAINT fk_prod_sitio FOREIGN KEY (sitioWebID) REFERENCES SitiosWeb(sitioWebID)
-);
+CREATE TABLE ProductosXSitioWeb (
+    productosXSitioWebID INT AUTO_INCREMENT PRIMARY KEY,
+    productoRemotoID INT,
+    SitioWebID INT,
+    FOREIGN KEY (productoRemotoID) REFERENCES ProductosRemotos(productoRemotoId),
+    FOREIGN KEY (SitioWebID) REFERENCES SitiosWeb(sitioWebID)
+) ENGINE=InnoDB;
 
--- 5. Tabla Marcas (Requerida por Ordenes y Paquetes)
-CREATE TABLE Marcas (
-    marcaID INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(32)
-);
-
--- 6. Tabla Clientes (Requerida por Ordenes y Paquetes)
+-- 4. Clientes y Ventas
 CREATE TABLE Clientes (
     clienteID INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(32),
-    paisID INT,
-    CONSTRAINT fk_cliente_pais FOREIGN KEY (paisID) REFERENCES Pais(paisId)
-);
+    email VARCHAR(32),
+    ubicacionID INT,
+    FOREIGN KEY (ubicacionID) REFERENCES Ubicaciones(ubicacionId)
+) ENGINE=InnoDB;
 
--- 7. Tabla CourierServices (Requerida por Paquetes)
+CREATE TABLE Ordenes (
+    ordenID INT AUTO_INCREMENT PRIMARY KEY,
+    sitioWebID INT,
+    descripcion VARCHAR(256),
+    clienteID INT,
+    fechaCreacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    precioLocalId INT,
+    estado VARCHAR(9), -- Entregada, activa, cancelada
+    FOREIGN KEY (sitioWebID) REFERENCES SitiosWeb(sitioWebID),
+    FOREIGN KEY (clienteID) REFERENCES Clientes(clienteID),
+    FOREIGN KEY (precioLocalId) REFERENCES PreciosLocales(precioLocalId)
+) ENGINE=InnoDB;
+
+CREATE TABLE ProductosXOrden (
+    productosXOrdenID INT AUTO_INCREMENT PRIMARY KEY,
+    productoRemotoID INT,
+    cantidad INTEGER,
+    ordenID INT,
+    FOREIGN KEY (productoRemotoID) REFERENCES ProductosRemotos(productoRemotoId),
+    FOREIGN KEY (ordenID) REFERENCES Ordenes(ordenID)
+) ENGINE=InnoDB;
+
+-- 5. Logística y Distribución
 CREATE TABLE CourierServices (
     courierServiceID INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(32),
-    paisID INT,
-    CONSTRAINT fk_courier_pais FOREIGN KEY (paisID) REFERENCES Pais(paisId)
-);
+    ubicacionID INT,
+    FOREIGN KEY (ubicacionID) REFERENCES Ubicaciones(ubicacionId)
+) ENGINE=InnoDB;
 
--- 8. Tabla Ordenes
-CREATE TABLE Ordenes (
-    ordenID INT AUTO_INCREMENT PRIMARY KEY,
-    descripcion VARCHAR(256),
-    productoID INT,
-    cantidad INTEGER,
-    marcaID INT,
-    clienteID INT,
-    realizada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_orden_prod FOREIGN KEY (productoID) REFERENCES Productos(productoId),
-    CONSTRAINT fk_orden_marca FOREIGN KEY (marcaID) REFERENCES Marcas(marcaID),
-    CONSTRAINT fk_orden_cliente FOREIGN KEY (clienteID) REFERENCES Clientes(clienteID)
-);
-
--- 9. Tabla Paquetes
 CREATE TABLE Paquetes (
     paqueteID INT AUTO_INCREMENT PRIMARY KEY,
-    marcaID INT,
-    productoID INT,
-    paisID INT,
+    sitioWebEncargadoID INT,
+    ubicacionActualID INT,
+    ubicacionDestinoID INT,
     requisitosLegales VARCHAR(256),
     permisosDeSalud VARCHAR(256),
     courierServiceID INT,
     clienteID INT,
-    CONSTRAINT fk_paq_marca FOREIGN KEY (marcaID) REFERENCES Marcas(marcaID),
-    CONSTRAINT fk_paq_prod FOREIGN KEY (productoID) REFERENCES Productos(productoId),
-    CONSTRAINT fk_paq_pais FOREIGN KEY (paisID) REFERENCES Pais(paisId),
-    CONSTRAINT fk_paq_courier FOREIGN KEY (courierServiceID) REFERENCES CourierServices(courierServiceID),
-    CONSTRAINT fk_paq_cliente FOREIGN KEY (clienteID) REFERENCES Clientes(clienteID)
-);
+    FOREIGN KEY (sitioWebEncargadoID) REFERENCES SitiosWeb(sitioWebID),
+    FOREIGN KEY (ubicacionActualID) REFERENCES Ubicaciones(ubicacionId),
+    FOREIGN KEY (ubicacionDestinoID) REFERENCES Ubicaciones(ubicacionId),
+    FOREIGN KEY (courierServiceID) REFERENCES CourierServices(courierServiceID),
+    FOREIGN KEY (clienteID) REFERENCES Clientes(clienteID)
+) ENGINE=InnoDB;
+
+CREATE TABLE ProductosXPaquete (
+    productosXPaqueteID INT AUTO_INCREMENT PRIMARY KEY,
+    productoRemotoID INT,
+    cantidad INTEGER,
+    paqueteID INT,
+    FOREIGN KEY (productoRemotoID) REFERENCES ProductosRemotos(productoRemotoId),
+    FOREIGN KEY (paqueteID) REFERENCES Paquetes(paqueteID)
+) ENGINE=InnoDB;
