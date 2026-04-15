@@ -1,13 +1,17 @@
-Database engine: MySQL
-Database name: Dynamic
+# Database engine: MySQL
+# Database name: Dynamic
 
-Context: Tenemos un holding comercial que opera bajo un modelo de negocio híbrido de importación y ventas digitales de alta gama.
-Esta base de datos es de una empresa de base tecnológica donde han desarrollado una IA capaz de generar sitios de e-commerce dinámicos.
-A partir de parámetros (logo, enfoque, país), la IA despliega tiendas virtuales con marcas blancas.
-Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic, cada uno con un enfoque de marketing y mensajes distintos para el mismo producto base.
+Context: Holding comercial que opera bajo un modelo de negocio híbrido. Empresa de base tecnológica con IA capaz de generar sitios de e-commerce dinámicos.
 
 # Tables:
--- Tablas necesarias para otras tablas
+-- Estándar de moneda (Currency Pattern) y localización
+## Currencies:
+- currencyId PK
+- moneda varchar(20)
+- simbolo char
+- tasaCambioUSD decimal(12, 6)
+- ultimaActualizacion timestamp
+
 ## Ubicaciones:
 - ubicacionId PK
 - pais varchar(20)
@@ -15,55 +19,49 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - ciudad varchar(20)
 - direccion varchar(128)
 
-## PreciosLocales:
-- precioLocalId PK
-- moneda varchar(20)
-- simbolo char
-- tasaCambio decimal(10,5)
-- activo boolean
-
--- "Puntero" a Productos en postgres de EtheriaGlobal (FEDERATED Storage Engine)
-## ProductosRemotos:
-- productoRemotoId PK
-- productoID INT (FK Virtual -> PostgreSQL.Productos)
-- nombre varchar(40)
-- precioLocalID FK
-- enExistencia boolean
-
--- Comienzo del flujo de operación
 ## SitiosWeb:
 - sitioWebID PK
-- nombre varchar (32)
-- URL varchar (100)
-- logo_url text
+- nombre varchar(32)
+- URL varchar(100)
+- logo_url varchar(255)
 - enfoque varchar(256)
+- config_json json
+- currencyId FK
 - ubicacionID FK
 - abierto boolean
 
-## ProductosXSitioWeb:
-- productosXSitioWebID PK
-- productoRemotoID FK
-- SitioWebID FK
+## ProductosLocales:
+- productoLocalId PK
+- productoRemotoID INT
+- sitioWebID FK
+- precioLocal decimal(19, 4)
+- enExistencia boolean
 
 ## Clientes:
 - clienteID PK
 - nombre varchar(32)
 - email varchar(32)
+- password_hash varchar(255)
 - ubicacionID FK
+- fechaRegistro timestamp
 
 ## Ordenes:
 - ordenID PK
+- numeroOrden varchar(32)
 - sitioWebID FK
-- descripcion varchar(256)
 - clienteID FK
 - fechaCreacion timestamp
-- precioLocalId PK
-- estado varchar(9)				-- Entregada, activa, cancelada
+- currencyId FK
+- tasaCambioHistorica decimal(12, 6)
+- montoTotal decimal(19, 4)
+- estado varchar(15)
+- checksum varchar(64)
 
 ## ProductosXOrden:
 - productosXOrdenID PK
-- productoRemotoID FK
+- productoLocalID FK
 - cantidad integer
+- precioVentaHistorico decimal(19, 4)
 - ordenID FK
 
 ## CourierServices:
@@ -73,16 +71,16 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 
 ## Paquetes:
 - paqueteID PK
-- sitioWebEncargadoID FK
+- ordenID FK
 - ubicacionActualID FK
 - ubicacionDestinoID FK
 - requisitosLegales varchar(256)
 - permisosDeSalud varchar(256)
 - courierServiceID FK
-- clienteID FK
+- estadoEnvio varchar(20)
 
 ## ProductosXPaquete:
 - productosXPaqueteID PK
-- productoRemotoID FK
+- productoLocalID FK
 - cantidad integer
 - paqueteID FK
