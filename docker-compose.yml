@@ -1,15 +1,18 @@
 services:
   db_postgres:
-    image: postgres:latest
+    build: . 
     container_name: postgrescaso2
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
-      POSTGRES_DB: basepostgre
+      POSTGRES_DB: Etheria
     ports:
       - "5432:5432"
     networks:
       - data_network
+    volumes:
+      - ./init-postgres:/docker-entrypoint-initdb.d
+      - ./postgres_data:/var/lib/postgresql/data # <--- PERSISTENCIA PARA TUS TABLAS
 
   db_mysql:
     image: mysql:latest
@@ -21,6 +24,25 @@ services:
       MYSQL_PASSWORD: pass
     ports:
       - "3306:3306"
+    networks:
+      - data_network
+    volumes:
+      - ./init-mysql:/docker-entrypoint-initdb.d
+      - ./mysql_data:/var/lib/mysql # <--- PERSISTENCIA PARA TUS TABLAS
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabasecaso2
+    environment:
+      # Cambiamos esto a la base interna con persistencia de archivo
+      - MB_DB_FILE=/metabase-data/metabase.db 
+    volumes:
+      - ./metabase-data:/metabase-data # <--- AQUÍ SE GUARDA TU DASHBOARD
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db_postgres
+      - db_mysql
     networks:
       - data_network
 
