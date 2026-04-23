@@ -46,6 +46,36 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - post timestamp
 - enabled boolean
 
+## Logs:
+- logID PK
+- eventTypeID FK
+- description varchar(255)
+- sourceID FK
+- severityID FK
+- postTime Timestamp
+- userID FK
+- checksum bytea
+- dataObjectID1 FK
+- dataObjectID2 FK
+
+## EventTypes:
+- EventTypeID PK
+- LogType varchar(30)
+
+## Sources:
+- sourceID PK
+- sourceName varchar(50) not null			-- Ej: Cliente, empleado, sistema
+- clienteID FK
+
+## Severities:
+- severityID PK
+- severityLevel tinyint				-- Ej: 0, 2, 5
+- severityName varchar(10)			-- Ej: Emergency, Critical, Notice
+
+## DataObjects:
+- dataObjectID PK
+- dataObjectName varchar(63)
+
 ## ExchangeRates:
 - exchangeRateID PK
 - currencyID1 FK			-- Divisa base
@@ -68,7 +98,36 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - post timestamp
 - checksum bytea
 
--- HAY QUE AÑADIR PRODUCTS
+-- ACTUALIZAR DESDE
+
+## ProductTypes:
+- productTypeID PK
+- type varchar(20)			-- Ej: 
+
+## Measures:
+- measureId PK
+- unit varchar(20)			-- Ej: mL, gramos
+- quantity float(5)
+
+## Proveedores:
+-- nos falta informacion del proveedor, no se que es lo que vende, ni
+sus precios, ni como contactarlo
+- proveedorID PK
+- nombre varchar(32)
+- ubicacionID 
+
+## Productos:
+- productoId PK
+- nombre varchar(40)
+- tipoProductoId FK
+- 
+- descripcion varchar(200)
+- medidaId FK
+- precioUSD decimal(19, 4)
+- cantidad integer					-- Si >= 0 se solicita una importación
+- descontinuado boolean
+
+-- ACTUALIZAR HASTA
 
 ## WebSites:
 - webSiteID PK
@@ -76,9 +135,38 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - URL varchar(255)
 - logoURL varchar(255)
 - focus varchar(255)
-- targetAudience varchar(30)
+- countryID FK
+- targetAudience FK
+- configID FK
 - addressID FK			-- Esto tal vez haya que usar el modelo de officeAdress del profe o solo poner CountryID
 - enabled boolean 
+
+## ProductsXWebSite:
+- productXWebSiteID PK
+- productID FK
+- webSiteID FK
+- logID FK
+
+## Configs:
+- configID PK
+- colorCode1 varchar(7)			-- Ej: #FF5733
+- colorCode2 varchar(7)
+- fontFamily varchar(63)			-- Ej: Arial, Liberation Sans
+- layoutTemplate varchar(30)			-- Ej: Minimal, Bond
+
+## Marketing:
+- marketingID PK
+- websiteID FK
+- section varchar(50)			-- Ej: About us, button, adds, title
+- content varchar(255)
+- imageURL varchar(255)
+
+## TargetAudiences:
+- targetAudienceID
+- ageMin int
+- ageMax int
+- gender char			-- Ej: H (Hombre), M (Mujer), U (Unisex)
+- incomeLevel varchar(6)			-- Ej: Low, Medium, High
 
 ## Ordenes:
 - ordenID PK
