@@ -12,8 +12,7 @@ services:
       - data_network
     volumes:
       - ./init-postgres:/docker-entrypoint-initdb.d
-      - ./postgres_data:/var/lib/postgresql/data # <--- PERSISTENCIA PARA TUS TABLAS
-
+      - ./postgres_data:/var/lib/postgresql
   db_mysql:
     image: mysql:latest
     container_name: mysqlcaso2
