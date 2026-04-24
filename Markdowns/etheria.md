@@ -9,6 +9,13 @@ Se importan en "bulk" (cajas sin marca ni etiquetado) en dólares (USD).
 Todo llega a un centro logístico en la costa Caribe de Nicaragua.
 
 # Tables:
+## Users:
+- userID PK
+- name varchar(20)
+- lastName varchar(20)
+- email varchar(254)
+- enabled boolean
+
 ## Countries:
 - countryID PK
 - countryCommonName varchar(25)			-- Ej: 'Costa Rica', 'Estados Unidos', 'Japón'
@@ -31,43 +38,13 @@ Todo llega a un centro logístico en la costa Caribe de Nicaragua.
 - enabled boolean
 
 ## Addresses:
-- adressID PK
+- addressID PK
 - cityID FK
 - address1 varchar(30)
 - address2 varchar(30)
 - zipCode varchar(20)			-- Ej: '20201', '050001', '8320000'
 - geoPosition point
 - enabled boolean
-
-## Logs:
-- logID PK
-- eventTypeID FK
-- description varchar(255)
-- sourceID FK
-- severityID FK
-- postTime Timestamp
-- userID FK
-- checksum bytea
-- dataObjectID1 FK
-- dataObjectID2 FK
-
-## EventTypes:
-- EventTypeID PK
-- LogType varchar(30)
-
-## Sources:
-- sourceID PK
-- sourceName varchar(50) not null			-- Ej: Cliente, empleado, sistema
-- clienteID FK
-
-## Severities:
-- severityID PK
-- severityLevel tinyint				-- Ej: 0, 2, 5
-- severityName varchar(10)			-- Ej: Emergency, Critical, Notice
-
-## DataObjects:
-- dataObjectID PK
-- dataObjectName varchar(63)
 
 ## Currencies:
 - currencyID PK
@@ -101,21 +78,24 @@ Todo llega a un centro logístico en la costa Caribe de Nicaragua.
 - post timestamp
 - checksum bytea
 
-## ProductTypes:
-- productTypeId PK
-- typeName varchar(50)
-
-## Measurements:
-- measurementId PK
-- measurementName varchar(20)
-- measurementSimbol varchar(3)        -- Ej: ml, g, Kg
-- quantity decimal(10,2)  -- Ej: 500, 1000, 1
+## Products:
+- productID PK
+- name varchar(80)
+- productTypeID FK
+- categoryID FK
+- description varchar(300)
+- measurementId FK
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- updatedBy FK
+- enabled BOOLEAN
+- checksum BYTEA
 
 ## Providers:
-- providerId PK
-- nombre varchar(64)
-- emailContacto varchar(254)
-- telefonoContacto varchar(20)
+- providerID PK
+- name varchar(64)
+- contactEmail varchar(254)
+- contactPhone varchar(20)
 - addressID FK
 - createdAt TIMESTAMP
 - updatedAt TIMESTAMP
@@ -124,73 +104,173 @@ Todo llega a un centro logístico en la costa Caribe de Nicaragua.
 - checksum BYTEA
 
 ## ProductsXProvider
-- productsXPoviderId PK
+- productsXProviderId PK
 - productId FK
 - providerId FK
 - currencyId FK
 - price decimal(19, 4)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum BYTEA
+
+## ProductTypes:
+- productTypeId PK
+- typeName varchar(50)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+
+## Measurements:
+- measurementId PK
+- measurementName varchar(20)
+- measurementSimbol varchar(3)        -- Ej: ml, g, Kg
+- quantity decimal(10,2)  -- Ej: 500, 1000, 1
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
 
 ## Categories:
 - categoryID PK
 - categoryName varchar(30)
 - description varchar(100)
-
-## Products:
-- productId PK
-- nombre varchar(80)
-- tipoProductoId FK
-- cateogryID FK
-- descripcion varchar(300)
-- measurementId FK
 - createdAt TIMESTAMP
 - updatedAt TIMESTAMP
-- updatedBy INT
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+
+## Logs:
+- logID PK
+- eventTypeID FK
+- description varchar(255)
+- sourceID FK
+- severityID FK
+- postTime Timestamp
+- userID FK
+- checksum BYTEA
+- dataObjectID1 FK
+- dataObjectID2 FK
+
+## EventTypes:
+- EventTypeID PK
+- LogType varchar(30)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum BYTEA
+
+## Sources:
+- sourceID PK
+- sourceName varchar(30)
+- userID FK
+
+## Severities:
+- severityID PK
+- severityLevel smallint				-- Ej: 0, 2, 5
+- severityName varchar(10)			-- Ej: Emergency, Critical, Notice
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum BYTEA
+
+## DataObjects:
+- dataObjectID PK
+- dataObjectName varchar(63)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
 - enabled BOOLEAN
 - checksum BYTEA
 
 ## Hubs:
 - hubId PK
-- ubicacionID FK
+- hubName varchar(30)
+- addressID FK
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum BYTEA
 
-## InventarioHub:
-- inventarioId PK
+## InventoryXHub:
+- inventoryId PK
 - hubId FK
-- productoID FK
-- cantidad integer
+- productID FK
+- quantity integer
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum BYTEA
 
-## MovimientosInventario:
-- movimientoId PK
-- productoID FK
-- tipo varchar(10)
-- cantidad integer
-- fecha timestamp
+## MovementXInventory:
+- movementId PK
+- productID FK
+- type varchar(10)
+- quantity integer
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum BYTEA
 
-## EstadosImportacion:
-- estadoImportacionId PK
-- nombre varchar(20)
+## ImportationStates:
+- importationStateId PK
+- name varchar(20)
 
-## DemandaImportacion:
-- demandaId PK
+## Demands:
+- demandId PK
 - countryId FK
-- cantidadDemandada integer
-- fecha timestamp
+- quantity integer
+- productID FK
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum BYTEA
 
-## Importaciones:
-- importacionID PK
-- proveedorID FK
-- demandaId FK
-- descripcion varchar(256)
+## Importation:
+- importationID PK
+- providerID FK
+- demandId FK
+- description varchar(256)
 - logId FK
-- subtotalUSD decimal(19, 4)
-- impuestosUSD decimal(19, 4)
-- fleteUSD decimal(19, 4)
-- totalUSD decimal(19, 4)
-- estadoImportacionId FK
+- currencyID FK
+- exchangeRate FK
+- subtotalAmount decimal(19,4)
+- taxRate decimal(5,4)
+- shippingFee decimal(19,4)
+- service decimal(19,4)
+- totalAmount decimal(19,4)
+- importationStateID FK
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum BYTEA
 
-## ProductosXImportacion:
-- productosXImportacionID PK
-- productoID FK
-- cantidad integer
-- costoUnitarioUSD decimal(19, 4)
-- importacionID FK
+## ProductsXImportation:
+- productsXImportationID PK
+- productID FK
+- quantity integer
+- currencyID FK
+- price decimal(19,4)
+- importationID FK
 

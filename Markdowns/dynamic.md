@@ -7,26 +7,45 @@ A partir de parámetros (logo, enfoque, país), la IA despliega tiendas virtuale
 Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic, cada uno con un enfoque de marketing y mensajes distintos para el mismo producto base.
 
 #Tables:
+## Users:
+- userID PK
+- name varchar(20)
+- lastName varchar(20)
+- email varchar(254)
+- enabled boolean
+
 ## Countries:
 - countryID PK
 - countryCommonName varchar(25)			-- Ej: 'Costa Rica', 'Estados Unidos', 'Japón'
 - countryOfficialName varchar(30)			-- Ej: 'República de Costa Rica', 'Estados Unidos de América', 'Japón'
 - isoCode char(3)			-- Ej: 'CRC', 'USA', 'JAP'
 - taxRate decimal(5,4)
-- enabled boolean
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
 
 ## States:
 - stateID PK
 - countryID FK
 - stateName varchar(20)			-- Ej: 'Alajuela', 'Buenos Aires', 'Ciudad de Guatemala'
 - isoCode varchar(10)			-- Ej: 'CR-A', 'AR-C', 'GT-GU'
-- enabled boolean
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
 
 ## Cities:
 - cityID PK
 - stateID FK
 - cityName varchar(30)			-- Ej: 'San Ramón', 'Medellín (Centro)', 'Santiago (Centro)'
-- enabled boolean
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
 
 ## Addresses:
 - addressID PK
@@ -35,7 +54,11 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - address2 varchar(30)
 - zipCode varchar(20)			-- Ej: '20201', '050001', '8320000'
 - geoPosition point
-- enabled boolean
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
 
 ## Logs:
 - logID PK
@@ -45,46 +68,67 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - severityID FK
 - postTime Timestamp
 - userID FK
-- checksum bytea
+- checksum binary(32)
 - dataObjectID1 FK
 - dataObjectID2 FK
 
 ## EventTypes:
 - EventTypeID PK
 - LogType varchar(30)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum binary(32)
 
 ## Sources:
 - sourceID PK
-- sourceName varchar(50) not null			-- Ej: Cliente, empleado, sistema
-- clienteID FK
+- sourceName varchar(30)
+- userID FK
 
 ## Severities:
 - severityID PK
 - severityLevel smallint				-- Ej: 0, 2, 5
 - severityName varchar(10)			-- Ej: Emergency, Critical, Notice
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum binary(32)
 
 ## DataObjects:
 - dataObjectID PK
 - dataObjectName varchar(63)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum binary(32)
 
 ## Currencies:
 - currencyID PK
 - currencySymbol char(1)
 - currencyName varchar(10)
 - countryID FK
-- userID FK
-- post timestamp
-- enabled boolean
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum binary(32)
 
 ## ExchangeRates:
 - exchangeRateID PK
 - currencyID1 FK			-- Divisa base
 - currencyID2	FK			-- Divisa destino
 - exchangeRate decimal(20,4)			-- Factor multiplicativo
-- userID FK
-- post timestamp
-- checksum bytea
-- enabled boolean
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum binary(32)
 
 ## ExchangeHistories:
 - exchangeHistoryID PK
@@ -94,11 +138,78 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - currencyID1 FK			-- Divisa base
 - currencyID2	FK			-- Divisa destino
 - exchangerate decimal(20,4)			-- Factor multiplicativo
-- userID FK
-- post timestamp
-- checksum bytea
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum binary(32)
 
--- PRODUCTOS
+## Products:
+- productID PK
+- name varchar(80)
+- productTypeID FK
+- categoryID FK
+- description varchar(300)
+- measurementId FK
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- updatedBy FK
+- enabled BOOLEAN
+- checksum binary(32)
+
+## Providers:
+- providerID PK
+- name varchar(64)
+- contactEmail varchar(254)
+- contactPhone varchar(20)
+- addressID FK
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- updatedBy INT
+- enabled BOOLEAN
+- checksum binary(32)
+
+## ProductsXProvider
+- productsXProviderId PK
+- productId FK
+- providerId FK
+- currencyId FK
+- price decimal(19, 4)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum binary(32)
+
+## ProductTypes:
+- productTypeId PK
+- typeName varchar(50)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+
+## Measurements:
+- measurementId PK
+- measurementName varchar(20)
+- measurementSimbol varchar(3)        -- Ej: ml, g, Kg
+- quantity decimal(10,2)  -- Ej: 500, 1000, 1
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+
+## Categories:
+- categoryID PK
+- categoryName varchar(30)
+- description varchar(100)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
 
 ## WebSites:
 - webSiteID PK
@@ -109,7 +220,7 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - countryID FK
 - targetAudience FK
 - configID FK
-- addressID FK			-- Esto tal vez haya que usar el modelo de officeAdress del profe o solo poner CountryID
+- addressID FK
 - enabled boolean 
 
 ## ProductsXWebSite:
@@ -117,7 +228,14 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - productID FK
 - webSiteID FK
 - quantity int
-- logID FK			-- Contiene los datos de cuando se modificó, quien lo hizo y el checksum
+- currencyID FK
+- price decimal(19,4)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum binary(32)
 
 ## Configs:
 - configID PK
@@ -134,7 +252,7 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - imageURL varchar(255)
 
 ## TargetAudiences:
-- targetAudienceID
+- targetAudienceID PK
 - ageMin int
 - ageMax int
 - gender char			-- Ej: H (Hombre), M (Mujer), U (Unisex)
@@ -150,62 +268,108 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - age smallint
 - gender char			-- Ej: 'H' Hombre, 'M' Mujer, 'U' unisex
 - purchaseFrecuency smallint
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- enabled BOOLEAN
+- checksum binary(32)
 
-## Order:
+## Orders:
 - orderID PK
 - orderNumber varchar(32) UNIQUE
-- sitioWebID FK
-- clienteID FK
+- websiteID FK
+- clientID FK
+- statusID FK
 - countryId FK
-- importacionID FK
-- fechaCreacion timestamp
-- currencyId FK
-- tasaCambioHistorica decimal(12, 6)
-- montoTotal decimal(19, 4)
-- estadoId FK
+- currencyID FK
+- exchangeRate FK
+- subtotalAmount decimal(19,4)
+- taxRate decimal(5,4)
+- shippingFee decimal(19,4)
+- service decimal(19,4)
+- discountAmount decimal(19,4)
+- totalAmount decimal(19,4)
+- logID FK
+- createdAt TIMESTAMP
+
+## Status:
+- statusID PK
+- statusName varchar(15)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+
+## ProductsXOrder:
+- productXOrderID PK
+- orderID FK
+- productID FK
+- quantity integer
+- currencyID FK
+- price decimal(19,4)
+- logID FK
 - checksum varchar(64)
 
-## ProductosXOrden:
-- productosXOrdenID PK
-- productoLocalID FK
-- cantidad integer
-- precioVentaHistorico decimal(19, 4)
-- ordenID FK
+## Payments:
+- paymentID PK
+- orderID FK
+- paymentMethodID FK
+- transactionReference varchar(100)
+- paymentStatus varchar(20)
+- amountPaid decimal(19,4)
+
+## PaymentMethods:
+- paymentMethodID PK
+- paymentMethod varchar(10)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+
+## InventoryControls:
+- inventoryID PK
+- productID FK
+- websiteID FK
+- stockQuantity int
+- minStockLevel int
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- updatedBy FK
+- enabled BOOLEAN
+- checksum binary(32)
 
 ## CourierServices:
 - courierServiceID PK
-- nombre varchar(64)
-- ubicacionID FK
+- name varchar(64)
+- addressID FK
 
-## EstadosEnvio:
-- estadoEnvioId PK
-- nombre varchar(20)
-
-## Paquetes:
-- paqueteID PK
-- ordenID FK
-- ubicacionActualID FK
-- ubicacionDestinoID FK
+## Packages:
+- packageID PK
+- orderID FK
+- managingWebsiteID FK
+- currentAddressID FK
+- destinationAddressID FK
 - courierServiceID FK
-- estadoEnvioId FK
+- status FK
+- legalRequirements varchar(256)
+- healthPermits varchar(256)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- endedAt TIMESTAMP
+- updatedBy FK
+- enabled BOOLEAN
+- checksum binary(32)
 
-## Envios:
-- envioId PK
-- paqueteID FK
-- fechaSalida timestamp
-- fechaEntrega timestamp
-- costoTotal decimal(19,4)
+## productsXPackage:
+- productXPackageID PK
+- packageID FK
+- productID FK
+- quantity integer
 
-## CostosLogisticos:
-- costoLogisticoId PK
-- paqueteID FK
-- tipo varchar(20)
-- monto decimal(19,4)
-- moneda varchar(10)
-
-## ProductosXPaquete:
-- productosXPaqueteID PK
-- productoLocalID FK
-- cantidad integer
-- paqueteID FK
-
+## LogisticsCosts:
+- logisticsCostID PK
+- packageID FK
+- costType varchar(30)			--Ej: Customs, Freight, Insurance
+- amount decimal(19,4)
+- currencyID FK
