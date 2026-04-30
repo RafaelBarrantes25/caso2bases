@@ -282,6 +282,7 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - countryId FK
 - currencyID FK
 - exchangeRate FK
+- exchangeHistoryID FK
 - subtotalAmount decimal(19,4)
 - taxRate decimal(5,4)
 - shippingFee decimal(19,4)
