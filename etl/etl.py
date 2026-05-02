@@ -6,19 +6,22 @@ def main():
     try:
         print("🚀 Iniciando integración de datos para Dashboard Gerencial...")
 
-        # 1. Configuración de motores (Asegúrate de que las contraseñas coincidan con tu Docker)
+        # Configuración de motores basada en docker-compose.yml[cite: 4]
+        # Etheria (PostgreSQL) y Dynamic (MySQL)
         pg_engine = create_engine('postgresql://user:pass@localhost:5432/Etheria')
-        my_engine = create_engine('mysql+mysqlconnector://root:rootpass@localhost:3306/dynamic_db')
+        my_engine = create_engine('mysql+mysqlconnector://user:pass@localhost:3306/Dynamic')
 
+        # EXTRACCIÓN - PostgreSQL (Etheria)
+        # Nombres de tablas y columnas validados con esquema de Etheria[cite: 7]
         query_pg = """
-            SELECT p.productid, p.name, pxp.price AS costprice
+            SELECT p.productID, p.name, pxp.price AS costPrice
             FROM Products p
-            JOIN ProductsXProvider pxp ON p.productid = pxp.productid
+            JOIN ProductsXProvider pxp ON p.productID = pxp.productID
         """
         df_etheria = pd.read_sql(query_pg, pg_engine)
         
-        # 3. EXTRACCIÓN - MySQL (Dynamic Brands)
-        # Se ajustó a los nombres exactos de 1tablas_dynamic.sql
+        # EXTRACCIÓN - MySQL (Dynamic)
+        # Nombres de tablas y columnas validados con esquema de Dynamic[cite: 5]
         query_my = """
             SELECT pws.productID, pws.price AS salePrice, w.webSiteName, c.countryCommonName 
             FROM ProductsXWebSite pws
@@ -27,24 +30,24 @@ def main():
         """
         df_dynamic = pd.read_sql(query_my, my_engine)
 
-        print("📥 Datos extraídos exitosamente.")
+        print("📥 Datos extraídos exitosamente. Iniciando normalización...")
 
-        # 4. TRANSFORMACIÓN
-        # Unimos usando productid (minúscula de Postgres) y productID (CamelCase de MySQL)
-        df_final = pd.merge(
-            df_dynamic, 
-            df_etheria, 
-            left_on='productID', 
-            right_on='productid'
-        )
+        # TRANSFORMACIÓN - Normalización de nombres para evitar KeyErrors
+        # Convertimos todos los nombres de columnas a minúsculas en ambos mundos
+        df_etheria.columns = [c.lower() for c in df_etheria.columns]
+        df_dynamic.columns = [c.lower() for c in df_dynamic.columns]
 
-        # Cálculo de Indicadores
-        df_final['rentabilidad_abs'] = df_final['salePrice'] - df_final['costprice']
-        df_final['margen_porc'] = (df_final['rentabilidad_abs'] / df_final['salePrice']) * 100
+        # Ahora el merge funcionará usando 'productid' (todo en minúsculas)
+        df_final = pd.merge(df_dynamic, df_etheria, on='productid')
 
-        print(f"🧪 {len(df_final)} registros procesados y unificados.")
+        # Ajustamos los cálculos usando los nuevos nombres en minúsculas
+        # saleprice viene de Dynamic[cite: 6] y costprice de Etheria
+        df_final['rentabilidad_abs'] = df_final['saleprice'] - df_final['costprice']
+        df_final['margen_porc'] = (df_final['rentabilidad_abs'] / df_final['saleprice']) * 100
 
-        # 5. CARGA
+        print(f"🧪 {len(df_final)} registros procesados tras el cruce de bases.")
+
+        # CARGA - Reporte en la base de Etheria
         df_final.to_sql('bi_reporte_gerencial', pg_engine, if_exists='replace', index=False)
 
         print("✅ ÉXITO: Tabla 'bi_reporte_gerencial' actualizada.")

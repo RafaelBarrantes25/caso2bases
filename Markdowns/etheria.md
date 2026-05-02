@@ -52,15 +52,19 @@ Todo llega a un centro logístico en la costa Caribe de Nicaragua.
 - currencyName varchar(10)
 - countryID FK
 - userID FK
-- post timestamp
-- enabled boolean
-- amount decimal(18,2)
+- createdAt TIMESTAMP
+- updatedAt TIMESTAMP
+- createdBy FK			-- UserID
+- updatedBy FK			-- UserID
+- enabled BOOLEAN
+- checksum binary(32)
 
 ## ExchangeRates:
 - exchangeRateID PK
 - currencyID1 FK			-- Divisa base
 - currencyID2	FK			-- Divisa destino
 - exchangeRate decimal(20,4)			-- Factor multiplicativo
+- postTime TIMESTAMP
 - userID FK
 - post timestamp
 - checksum bytea
@@ -81,7 +85,6 @@ Todo llega a un centro logístico en la costa Caribe de Nicaragua.
 ## Products:
 - productID PK
 - name varchar(80)
-- productTypeID FK
 - categoryID FK
 - description varchar(300)
 - measurementId FK
@@ -115,15 +118,6 @@ Todo llega a un centro logístico en la costa Caribe de Nicaragua.
 - updatedBy FK			-- UserID
 - enabled BOOLEAN
 - checksum BYTEA
-
-## ProductTypes:
-- productTypeId PK
-- typeName varchar(50)
-- createdAt TIMESTAMP
-- updatedAt TIMESTAMP
-- createdBy FK			-- UserID
-- updatedBy FK			-- UserID
-- enabled BOOLEAN
 
 ## Measurements:
 - measurementId PK

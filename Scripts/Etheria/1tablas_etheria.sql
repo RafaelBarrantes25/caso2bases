@@ -20,16 +20,6 @@ CREATE TABLE Countries (
   enabled boolean DEFAULT true
 );
 
-CREATE TABLE ProductTypes (
-  productTypeId SERIAL PRIMARY KEY,
-  typeName varchar(50),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true
-);
-
 CREATE TABLE Measurements (
   measurementId SERIAL PRIMARY KEY,
   measurementName varchar(20),
@@ -109,20 +99,22 @@ CREATE TABLE Sources (
 );
 
 CREATE TABLE Currencies (
-  currencyID SERIAL PRIMARY KEY,
-  currencySymbol char(1),
-  currencyName varchar(10),
-  countryID int REFERENCES Countries(countryID),
-  userID int REFERENCES Users(userID),
-  post timestamp DEFAULT CURRENT_TIMESTAMP,
-  enabled boolean DEFAULT true,
-  amount decimal(18,2)
+    currencyID SERIAL PRIMARY KEY,
+    currencySymbol CHAR(1),
+    currencyName VARCHAR(10),
+    countryID INT,
+    userID INT,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    createdBy INT,
+    updatedBy INT,
+    enabled BOOLEAN DEFAULT TRUE,
+    checksum BYTEA -- En PostgreSQL, binary(32) se representa como BYTEA
 );
 
 CREATE TABLE Products (
   productID SERIAL PRIMARY KEY,
   name varchar(80),
-  productTypeID int REFERENCES ProductTypes(productTypeId),
   categoryID int REFERENCES Categories(categoryID),
   description varchar(300),
   measurementId int REFERENCES Measurements(measurementId),

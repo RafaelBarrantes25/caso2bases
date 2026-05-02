@@ -125,6 +125,7 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - currencyID1 FK			-- Divisa base
 - currencyID2	FK			-- Divisa destino
 - exchangeRate decimal(20,4)			-- Factor multiplicativo
+- postTime TIMESTAMP
 - createdBy FK			-- UserID
 - updatedBy FK			-- UserID
 - enabled BOOLEAN
@@ -146,7 +147,6 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 ## Products:
 - productID PK
 - name varchar(80)
-- productTypeID FK
 - categoryID FK
 - description varchar(300)
 - measurementId FK
@@ -180,15 +180,6 @@ Pueden abrir y cerrar "N" sitios en diferentes países de Latam con un solo clic
 - updatedBy FK			-- UserID
 - enabled BOOLEAN
 - checksum binary(32)
-
-## ProductTypes:
-- productTypeId PK
-- typeName varchar(50)
-- createdAt TIMESTAMP
-- updatedAt TIMESTAMP
-- createdBy FK			-- UserID
-- updatedBy FK			-- UserID
-- enabled BOOLEAN
 
 ## Measurements:
 - measurementId PK
