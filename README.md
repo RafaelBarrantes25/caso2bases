@@ -1,0 +1,17 @@
+Requisitos de librerías para el ETL:
+
+# Librería principal para manipulación de datos
+pandas
+
+# Motores de conexión SQL
+sqlalchemy
+
+# Driver para conectar con PostgreSQL
+psycopg2-binary
+
+# Driver para conectar con MySQL
+mysql-connector-python
+
+# Soporte para algoritmos de autenticación en MySQL
+cryptography
+
