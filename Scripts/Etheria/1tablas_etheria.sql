@@ -1,297 +1,228 @@
----
--- Project Etheria: PostgreSQL Schema Export
----
-
--- 1. Tablas Independientes (Nivel 0)
-CREATE TABLE Users (
-  userID SERIAL PRIMARY KEY,
-  name varchar(20),
-  lastName varchar(20),
-  email varchar(254) UNIQUE,
-  enabled boolean DEFAULT true
-);
-
+-- ETHERIA GLOBAL:
+-- -----------------------------------------------------
+-- 1. MODELO DE GEOLOCALIZACIÓN Y DIRECCIONAMIENTO
+-- -----------------------------------------------------
 CREATE TABLE Countries (
   countryID SERIAL PRIMARY KEY,
-  countryCommonName varchar(25),
-  countryOfficialName varchar(30),
-  isoCode char(3),
-  taxRate decimal(5,4),
-  enabled boolean DEFAULT true
+  countryCommonName VARCHAR(25),
+  countryOfficialName VARCHAR(30),
+  isoCode CHAR(3),
+  taxRate DECIMAL(5,4),
+  enabled BOOLEAN DEFAULT TRUE
 );
-
-CREATE TABLE Measurements (
-  measurementId SERIAL PRIMARY KEY,
-  measurementName varchar(20),
-  measurementSimbol varchar(3),
-  quantity decimal(10,2),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true
-);
-
-CREATE TABLE Categories (
-  categoryID SERIAL PRIMARY KEY,
-  categoryName varchar(30),
-  description varchar(100),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true
-);
-
-CREATE TABLE ImportationStates (
-  importationStateId SERIAL PRIMARY KEY,
-  name varchar(20)
-);
-
-CREATE TABLE EventTypes (
-  eventTypeID SERIAL PRIMARY KEY,
-  logType varchar(30),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
-);
-
-CREATE TABLE Severities (
-  severityID SERIAL PRIMARY KEY,
-  severityLevel smallint,
-  severityName varchar(10),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
-);
-
-CREATE TABLE DataObjects (
-  dataObjectID SERIAL PRIMARY KEY,
-  dataObjectName varchar(63),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
-);
-
--- 2. Tablas con Dependencias Simples (Nivel 1)
 
 CREATE TABLE States (
   stateID SERIAL PRIMARY KEY,
-  countryID int REFERENCES Countries(countryID),
-  stateName varchar(20),
-  isoCode varchar(10),
-  enabled boolean DEFAULT true
+  countryID INT REFERENCES Countries(countryID),
+  stateName VARCHAR(20),
+  isoCode VARCHAR(10)
 );
-
-CREATE TABLE Sources (
-  sourceID SERIAL PRIMARY KEY,
-  sourceName varchar(30),
-  userID int REFERENCES Users(userID)
-);
-
-CREATE TABLE Currencies (
-    currencyID SERIAL PRIMARY KEY,
-    currencySymbol CHAR(1),
-    currencyName VARCHAR(10),
-    countryID INT,
-    userID INT,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    createdBy INT,
-    updatedBy INT,
-    enabled BOOLEAN DEFAULT TRUE,
-    checksum BYTEA -- En PostgreSQL, binary(32) se representa como BYTEA
-);
-
-CREATE TABLE Products (
-  productID SERIAL PRIMARY KEY,
-  name varchar(80),
-  categoryID int REFERENCES Categories(categoryID),
-  description varchar(300),
-  measurementId int REFERENCES Measurements(measurementId),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
-);
-
--- 3. Tablas con Dependencias Geográficas y Financieras
 
 CREATE TABLE Cities (
   cityID SERIAL PRIMARY KEY,
-  stateID int REFERENCES States(stateID),
-  cityName varchar(30),
-  enabled boolean DEFAULT true
+  stateID INT REFERENCES States(stateID),
+  cityName VARCHAR(30)
 );
 
 CREATE TABLE Addresses (
   addressID SERIAL PRIMARY KEY,
-  cityID int REFERENCES Cities(cityID),
-  address1 varchar(30),
-  address2 varchar(30),
-  zipCode varchar(20),
-  geoPosition point,
-  enabled boolean DEFAULT true
+  cityID INT REFERENCES Cities(cityID),
+  address1 VARCHAR(30),
+  address2 VARCHAR(30),
+  zipCode VARCHAR(20),
+  geoPosition POINT
 );
 
-CREATE TABLE ExchangeRates (
-  exchangeRateID SERIAL PRIMARY KEY,
-  currencyID1 int REFERENCES Currencies(currencyID),
-  currencyID2 int REFERENCES Currencies(currencyID),
-  exchangeRate decimal(20,4),
-  userID int REFERENCES Users(userID),
-  post timestamp DEFAULT CURRENT_TIMESTAMP,
-  checksum bytea,
-  enabled boolean DEFAULT true
+-- -----------------------------------------------------
+-- 2. MODELO DE REGISTRO (AUDITORÍA Y TRAZABILIDAD)
+-- -----------------------------------------------------
+CREATE TABLE EventTypes (
+  eventTypeID SERIAL PRIMARY KEY,
+  logType VARCHAR(30),
+  checksum BYTEA
 );
 
-CREATE TABLE ExchangeHistories (
-  exchangeHistoryID SERIAL PRIMARY KEY,
-  startDate time,
-  endDate time,
-  exchangeRateID int REFERENCES ExchangeRates(exchangeRateID),
-  currencyID1 int REFERENCES Currencies(currencyID),
-  currencyID2 int REFERENCES Currencies(currencyID),
-  exchangeRate decimal(20,4),
-  userID int REFERENCES Users(userID),
-  post timestamp DEFAULT CURRENT_TIMESTAMP,
-  checksum bytea
+CREATE TABLE Severities (
+  severityID SERIAL PRIMARY KEY,
+  severityLevel SMALLINT,
+  severityName VARCHAR(10),
+  checksum BYTEA
 );
 
--- 4. Logística y Proveedores
-
-CREATE TABLE Providers (
-  providerID SERIAL PRIMARY KEY,
-  name varchar(64),
-  contactEmail varchar(254),
-  contactPhone varchar(20),
-  addressID int REFERENCES Addresses(addressID),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
+CREATE TABLE DataObjects (
+  dataObjectID SERIAL PRIMARY KEY,
+  dataObjectName VARCHAR(63),
+  checksum BYTEA
 );
 
-CREATE TABLE Hubs (
-  hubId SERIAL PRIMARY KEY,
-  hubName varchar(30),
-  addressID int REFERENCES Addresses(addressID),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
-);
-
-CREATE TABLE ProductsXProvider (
-  productsXProviderId SERIAL PRIMARY KEY,
-  productId int REFERENCES Products(productID),
-  providerId int REFERENCES Providers(providerID),
-  currencyId int REFERENCES Currencies(currencyID),
-  price decimal(19,4),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
-);
-
--- 5. Inventario y Logs
-
-CREATE TABLE InventoryXHub (
-  inventoryId SERIAL PRIMARY KEY,
-  hubId int REFERENCES Hubs(hubId),
-  productID int REFERENCES Products(productID),
-  quantity int,
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
-);
-
-CREATE TABLE MovementXInventory (
-  movementId SERIAL PRIMARY KEY,
-  productID int REFERENCES Products(productID),
-  type varchar(10),
-  quantity int,
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
+CREATE TABLE Sources (
+  sourceID SERIAL PRIMARY KEY,
+  sourceName VARCHAR(30),
+  userID INT -- Referencia diferida al modelo de personas
 );
 
 CREATE TABLE Logs (
   logID SERIAL PRIMARY KEY,
-  eventTypeID int REFERENCES EventTypes(eventTypeID),
-  description varchar(255),
-  sourceID int REFERENCES Sources(sourceID),
-  severityID int REFERENCES Severities(severityID),
-  postTime timestamp DEFAULT CURRENT_TIMESTAMP,
-  userID int REFERENCES Users(userID),
-  checksum bytea,
-  dataObjectID1 int REFERENCES DataObjects(dataObjectID),
-  dataObjectID2 int REFERENCES DataObjects(dataObjectID)
+  eventTypeID INT REFERENCES EventTypes(eventTypeID),
+  sourceID INT REFERENCES Sources(sourceID),
+  severityID INT REFERENCES Severities(severityID),
+  userID INT,
+  description VARCHAR(255),
+  dataObjectID1 INT REFERENCES DataObjects(dataObjectID),
+  dataObjectID2 INT REFERENCES DataObjects(dataObjectID),
+  postTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  checksum BYTEA
 );
 
--- 6. Demandas e Importaciones
+-- -----------------------------------------------------
+-- 3. MODELO DE DIVISAS
+-- -----------------------------------------------------
+CREATE TABLE Currencies (
+  currencyID SERIAL PRIMARY KEY,
+  currencySymbol CHAR(1),
+  currencyName VARCHAR(10),
+  countryID INT REFERENCES Countries(countryID),
+  enabled BOOLEAN DEFAULT TRUE,
+  checksum BYTEA
+);
+
+CREATE TABLE ExchangeRates (
+  exchangeRateID SERIAL PRIMARY KEY,
+  currencyID1 INT REFERENCES Currencies(currencyID),
+  currencyID2 INT REFERENCES Currencies(currencyID),
+  exchangeRate DECIMAL(20,4),
+  post TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  checksum BYTEA
+);
+
+CREATE TABLE ExchangeRateHistory (
+  exchangeHistoryID SERIAL PRIMARY KEY,
+  exchangeRateID INT REFERENCES ExchangeRates(exchangeRateID),
+  currencyID1 INT REFERENCES Currencies(currencyID),
+  currencyID2 INT REFERENCES Currencies(currencyID),
+  exchangeRate DECIMAL(20,4),
+  startDate TIMESTAMP,
+  endDate TIMESTAMP,
+  checksum BYTEA
+);
+
+-- -----------------------------------------------------
+-- 4. MODELO DE MERCANCÍA
+-- -----------------------------------------------------
+CREATE TABLE Categories (
+  categoryID SERIAL PRIMARY KEY,
+  categoryName VARCHAR(30),
+  description VARCHAR(100),
+  enabled BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE Measurements (
+  measurementId SERIAL PRIMARY KEY,
+  measurementName VARCHAR(20),
+  measurementSimbol VARCHAR(3),
+  quantity DECIMAL(10,2)
+);
+
+CREATE TABLE Products (
+  productID SERIAL PRIMARY KEY,
+  name VARCHAR(80),
+  categoryID INT REFERENCES Categories(categoryID),
+  measurementId INT REFERENCES Measurements(measurementId),
+  description VARCHAR(300),
+  enabled BOOLEAN DEFAULT TRUE,
+  checksum BYTEA
+);
+
+CREATE TABLE Providers (
+  providerID SERIAL PRIMARY KEY,
+  name VARCHAR(64),
+  contactEmail VARCHAR(254),
+  contactPhone VARCHAR(20),
+  addressID INT REFERENCES Addresses(addressID),
+  enabled BOOLEAN DEFAULT TRUE,
+  checksum BYTEA
+);
+
+CREATE TABLE ProductsXProvider (
+  productsXProviderId SERIAL PRIMARY KEY,
+  productId INT REFERENCES Products(productID),
+  providerId INT REFERENCES Providers(providerID),
+  currencyId INT REFERENCES Currencies(currencyID),
+  price DECIMAL(19,4),
+  checksum BYTEA
+);
+
+-- -----------------------------------------------------
+-- 5. MODELO DE INVENTARIO E IMPORTACIONES
+-- -----------------------------------------------------
+CREATE TABLE Hubs (
+  hubId SERIAL PRIMARY KEY,
+  hubName VARCHAR(30),
+  addressID INT REFERENCES Addresses(addressID),
+  enabled BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE InventoryXHub (
+  inventoryId SERIAL PRIMARY KEY,
+  hubId INT REFERENCES Hubs(hubId),
+  productID INT REFERENCES Products(productID),
+  quantity INT,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  checksum BYTEA
+);
+
+CREATE TABLE MovementXInventory (
+  movementId SERIAL PRIMARY KEY,
+  productID INT REFERENCES Products(productID),
+  type VARCHAR(10), -- 'IN' o 'OUT'
+  quantity INT,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE ImportationState (
+  importationStateId SERIAL PRIMARY KEY,
+  name VARCHAR(20)
+);
 
 CREATE TABLE Demands (
   demandId SERIAL PRIMARY KEY,
-  countryId int REFERENCES Countries(countryID),
-  productID int REFERENCES Products(productID),
-  quantity int,
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
+  countryId INT REFERENCES Countries(countryID),
+  productID INT REFERENCES Products(productID),
+  quantity INT,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE Importation (
   importationID SERIAL PRIMARY KEY,
-  providerID int REFERENCES Providers(providerID),
-  demandId int REFERENCES Demands(demandId),
-  description varchar(256),
-  logId int REFERENCES Logs(logID),
-  currencyID int REFERENCES Currencies(currencyID),
-  exchangeRate int REFERENCES ExchangeRates(exchangeRateID),
-  subtotalAmount decimal(19,4),
-  taxRate decimal(5,4),
-  shippingFee decimal(19,4),
-  service decimal(19,4),
-  totalAmount decimal(19,4),
-  importationStateID int REFERENCES ImportationStates(importationStateId),
-  createdAt timestamp DEFAULT CURRENT_TIMESTAMP,
-  updatedAt timestamp,
-  createdBy int,
-  updatedBy int,
-  enabled boolean DEFAULT true,
-  checksum bytea
+  providerID INT REFERENCES Providers(providerID),
+  demandId INT REFERENCES Demands(demandId),
+  currencyID INT REFERENCES Currencies(currencyID),
+  exchangeRate INT REFERENCES ExchangeRates(exchangeRateID),
+  subtotalAmount DECIMAL(19,4),
+  totalAmount DECIMAL(19,4),
+  importationStateID INT REFERENCES ImportationState(importationStateId),
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  checksum BYTEA
 );
 
-CREATE TABLE ProductsXImportation (
-  productsXImportationID SERIAL PRIMARY KEY,
-  productID int REFERENCES Products(productID),
-  quantity int,
-  currencyID int REFERENCES Currencies(currencyID),
-  price decimal(19,4),
-  importationID int REFERENCES Importation(importationID)
+CREATE TABLE ProductXImportation (
+  productXImportationID SERIAL PRIMARY KEY,
+  productID INT REFERENCES Products(productID),
+  importationID INT REFERENCES Importation(importationID),
+  quantity INT,
+  price DECIMAL(19,4)
 );
+
+-- -----------------------------------------------------
+-- 6. MODELADO DE PERSONAS
+-- -----------------------------------------------------
+CREATE TABLE Users (
+  userID SERIAL PRIMARY KEY,
+  name VARCHAR(20),
+  lastName VARCHAR(20),
+  email VARCHAR(254) UNIQUE,
+  enabled BOOLEAN DEFAULT TRUE
+);
+
+-- Relación circular necesaria para Sources
+ALTER TABLE Sources ADD CONSTRAINT fk_sources_users FOREIGN KEY (userID) REFERENCES Users(userID);
